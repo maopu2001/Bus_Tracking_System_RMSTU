@@ -1,15 +1,15 @@
 import { connectDB } from '@/lib/connectDB';
-import { Bus } from '@/schemas';
+import { BusRoute } from '@/schemas';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET() {
   try {
     await connectDB();
-    const buses = await Bus.find({}).populate('routeId');
+    const busRoutes = await BusRoute.find({});
 
-    if (buses.length < 1) return NextResponse.json({ message: 'No buses found' }, { status: 404 });
+    if (busRoutes.length < 1) return NextResponse.json({ message: 'No bus routes found' }, { status: 404 });
 
-    return NextResponse.json({ buses }, { status: 200 });
+    return NextResponse.json({ busRoutes }, { status: 200 });
   } catch (error) {
     let message = 'Something went wrong';
     if (error instanceof Error) message = error.message;
@@ -19,12 +19,12 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   try {
-    const { bus } = await req.json();
+    const { busRoute } = await req.json();
 
     await connectDB();
-    await Bus.insertMany(bus);
+    await BusRoute.insertMany(busRoute);
 
-    return NextResponse.json({ message: 'Successfully added buses' }, { status: 200 });
+    return NextResponse.json({ message: 'Successfully added bus routes' }, { status: 200 });
   } catch (error) {
     let message = 'Something went wrong';
     if (error instanceof Error) message = error.message;

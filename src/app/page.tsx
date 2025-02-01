@@ -3,7 +3,9 @@
 import { useState } from 'react';
 import dynamic from 'next/dynamic';
 import { FaBus, FaSearch, FaRoute } from 'react-icons/fa';
-import { Bus, BusRoute } from '@/types/bus';
+import { useQuery } from 'react-query';
+import { IBus } from '@/schemas/buses';
+import { IBusRoute } from '@/schemas/busRoutes';
 
 const MapComponent = dynamic(() => import('../components/MapComponent'), {
   ssr: false,
@@ -12,37 +14,29 @@ const MapComponent = dynamic(() => import('../components/MapComponent'), {
 
 export default function Home() {
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedRoute, setSelectedRoute] = useState<string | null>(null);
+  const [selectedRoute, setSelectedRoute] = useState<number | null>(null);
 
-  const routes: BusRoute[] = [
-    { id: '1', startingPoint: 'Varsity', endingPoint: 'Bonorupa', startTime: '08:00 AM' },
-    { id: '2', startingPoint: 'Varsity', endingPoint: 'Reserve Bazar', startTime: '09:00 AM' },
-    { id: '3', startingPoint: 'Varsity', endingPoint: 'Bonorupa', startTime: '10:00 AM' },
-  ];
+  const fetchBuses = async (): Promise<IBus[]> => {
+    const res = await fetch('/api/buses');
+    const data = await res.json();
+    return data.buses;
+  };
 
-  const buses: Bus[] = [
-    {
-      id: 1,
-      name: 'Furomon',
-      position: [22.660325, 92.170089],
-      lastUpdateTime: '2025-02-01T09:00:00+06:00',
-      routeId: '1',
-    },
-    {
-      id: 2,
-      name: 'Kachalong',
-      position: [22.6621771, 92.1618834],
-      lastUpdateTime: '2025-02-01T09:00:00+06:00',
-      routeId: '2',
-    },
-    {
-      id: 3,
-      name: 'Sajek',
-      position: [23.8003, 90.4025],
-      lastUpdateTime: '2025-02-01T10:00:00+06:00',
-      routeId: '3',
-    },
-  ];
+  const fetchBusRoutes = async (): Promise<IBusRoute[]> => {
+    const res = await fetch('/api/busRoutes');
+    const data = await res.json();
+    return data.busRoutes;
+  };
+
+  const { data: buses, isFetched: busesIsFetched } = useQuery({
+    queryKey: ['buses'],
+    queryFn: fetchBuses,
+  });
+
+  const { data: busRoutes, isFetched: busRoutesIsFetched } = useQuery({
+    queryKey: ['busRoutes'],
+    queryFn: fetchBusRoutes,
+  });
 
   return (
     <main className="min-h-screen p-4 md:p-8">
@@ -67,7 +61,7 @@ export default function Home() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div className="md:col-span-2">
             <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-              <MapComponent buses={buses} />
+              {busesIsFetched && <MapComponent buses={buses as unknown as IBus[]} />}
             </div>
           </div>
 
@@ -78,17 +72,18 @@ export default function Home() {
                 Available Routes
               </h2>
               <div className="space-y-2">
-                {routes.map((route) => (
-                  <button
-                    key={route.id}
-                    onClick={() => setSelectedRoute(route.id)}
-                    className={`w-full p-3 text-left rounded-lg transition-colors ${
-                      selectedRoute === route.id ? 'bg-blue-500 text-white' : 'bg-gray-50 hover:bg-gray-100'
-                    }`}
-                  >
-                    <b>Route - {route.id}:</b> {route.startingPoint} to {route.endingPoint}
-                  </button>
-                ))}
+                {busRoutesIsFetched &&
+                  busRoutes?.map((busRoute) => (
+                    <button
+                      key={busRoute.id}
+                      onClick={() => setSelectedRoute(busRoute.id)}
+                      className={`w-full p-3 text-left rounded-lg transition-colors ${
+                        selectedRoute === busRoute.id ? 'bg-blue-500 text-white' : 'bg-gray-50 hover:bg-gray-100'
+                      }`}
+                    >
+                      <b>Route - {busRoute.id}:</b> {busRoute.startingPoint} to {busRoute.endingPoint}
+                    </button>
+                  ))}
               </div>
             </div>
 
@@ -97,13 +92,13 @@ export default function Home() {
               {selectedRoute ? (
                 <div className="space-y-2">
                   <p className="text-sm text-gray-600">
-                    <b>Starting Point:</b> {routes.find((r) => r.id === selectedRoute)?.startingPoint}
+                    <b>Starting Point:</b> {busRoutes?.find((r) => r.id === selectedRoute)?.startingPoint}
                   </p>
                   <p className="text-sm text-gray-600">
-                    <b>Ending Point:</b> {routes.find((r) => r.id === selectedRoute)?.endingPoint}
+                    <b>Ending Point:</b> {busRoutes?.find((r) => r.id === selectedRoute)?.endingPoint}
                   </p>
                   <p className="text-sm text-gray-600">
-                    <b>Start Time:</b> {routes.find((r) => r.id === selectedRoute)?.startTime}
+                    <b>Start Time:</b> {busRoutes?.find((r) => r.id === selectedRoute)?.startTime}
                   </p>
                 </div>
               ) : (

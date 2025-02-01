@@ -3,29 +3,43 @@
 import { useEffect, useRef } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { Bus } from '@/types/bus';
+import { timeDiff } from '@/lib/timeDiff';
+import { IBus } from '@/schemas/buses';
 
-const MapComponent = ({ buses }: { buses: Bus[] }) => {
+const UniversityLoc: number[] = [22.613093, 92.164563];
+
+const MapComponent = ({ buses }: { buses: IBus[] }) => {
   const mapRef = useRef<L.Map | null>(null);
 
   useEffect(() => {
     if (!mapRef.current) {
-      
       // Initialize the map
-      mapRef.current = L.map('map').setView([23.8103, 90.4125], 13);
-
-      // Add OpenStreetMap tiles
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 19,
-        attribution: '© OpenStreetMap contributors',
-      }).addTo(mapRef.current);
+      mapRef.current = L.map('map').setView([22.65802316870434, 92.17314352612269], 13);
 
       const busIcon = L.icon({
         iconUrl: '/bus-icon.png',
         iconSize: [32, 32],
-        iconAnchor: [16, 32],
-        popupAnchor: [0, -32],
+        iconAnchor: [16, 16],
+        popupAnchor: [0, -16],
       });
+
+      const varsityIcon = L.icon({
+        iconUrl: '/loc-icon.png',
+        iconSize: [60, 55],
+        iconAnchor: [30, 55],
+        popupAnchor: [0, -60],
+      });
+
+      // Add OpenStreetMap tiles
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '© Zero Or One',
+      }).addTo(mapRef.current);
+
+      //Ad Univwersity Location
+      L.marker(UniversityLoc as L.LatLngExpression, { icon: varsityIcon })
+        .bindPopup('Rangamati Science and Technology University')
+        .addTo(mapRef.current!);
 
       buses.forEach((bus) => {
         L.marker(bus.position as L.LatLngExpression, { icon: busIcon })
@@ -51,17 +65,4 @@ const MapComponent = ({ buses }: { buses: Bus[] }) => {
 
   return <div id="map" className="h-[500px] w-full" />;
 };
-
-function timeDiff(date: string) {
-  console.log(new Date(date));
-  let remTime = Math.abs(Date.now() - new Date(date).getTime());
-  const diffDays = Math.floor(remTime / (1000 * 60 * 60 * 24));
-  remTime = Math.floor(remTime % (1000 * 60 * 60 * 24));
-  const diffHours = Math.floor(remTime / (1000 * 60 * 60));
-  remTime = Math.floor(remTime % (1000 * 60 * 60));
-  const diffMinutes = Math.floor(remTime / (1000 * 60));
-  return `${diffDays > 0 ? diffDays + ' days' : ''} ${diffHours > 0 ? diffHours + ' hours' : ''} ${
-    diffMinutes > 0 ? diffMinutes + ' minutes' : ''
-  }`;
-}
 export default MapComponent;
