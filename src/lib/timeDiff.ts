@@ -1,5 +1,4 @@
 export function timeDiff(date: string) {
-  console.log(new Date(date));
   let remTime = Math.abs(Date.now() - new Date(date).getTime());
   const diffDays = Math.floor(remTime / (1000 * 60 * 60 * 24));
   remTime = Math.floor(remTime % (1000 * 60 * 60 * 24));

@@ -6,6 +6,7 @@ import { FaBus, FaSearch, FaRoute } from 'react-icons/fa';
 import { useQuery } from 'react-query';
 import { IBus } from '@/schemas/buses';
 import { IBusRoute } from '@/schemas/busRoutes';
+import { BusLoc, BusLocVal } from '@/types/BusLoc';
 
 const MapComponent = dynamic(() => import('../components/MapComponent'), {
   ssr: false,
@@ -15,18 +16,6 @@ const MapComponent = dynamic(() => import('../components/MapComponent'), {
 export default function Home() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedRoute, setSelectedRoute] = useState<number | null>(null);
-
-  const fetchBuses = async (): Promise<IBus[]> => {
-    const res = await fetch('/api/buses');
-    const data = await res.json();
-    return data.buses;
-  };
-
-  const fetchBusRoutes = async (): Promise<IBusRoute[]> => {
-    const res = await fetch('/api/busRoutes');
-    const data = await res.json();
-    return data.busRoutes;
-  };
 
   const { data: buses, isFetched: busesIsFetched } = useQuery({
     queryKey: ['buses'],
@@ -38,13 +27,21 @@ export default function Home() {
     queryFn: fetchBusRoutes,
   });
 
+  const { data: busLoc } = useQuery({
+    queryKey: ['busLoc'],
+    queryFn: fetchBusLoc,
+    refetchOnWindowFocus: false,
+    refetchIntervalInBackground: false,
+    refetchInterval: 10000, //every10 seconds
+  });
+
   return (
     <main className="min-h-screen p-4 md:p-8">
       <div className="max-w-7xl mx-auto">
         <header className="mb-8">
           <h1 className="text-3xl font-bold text-blue-600 flex items-center gap-2">
             <FaBus className="text-4xl" />
-            Live Bus Tracking System for RMSTU
+            Track My Bus - RMSTU
           </h1>
           <div className="mt-4 relative">
             <input
@@ -61,7 +58,9 @@ export default function Home() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div className="md:col-span-2">
             <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-              {busesIsFetched && <MapComponent buses={buses as unknown as IBus[]} />}
+              {busesIsFetched && (
+                <MapComponent buses={buses as unknown as IBus[]} busLoc={busLoc as unknown as BusLoc} />
+              )}
             </div>
           </div>
 
@@ -111,3 +110,23 @@ export default function Home() {
     </main>
   );
 }
+
+const fetchBuses = async (): Promise<IBus[]> => {
+  const res = await fetch('/api/buses');
+  const data = await res.json();
+  return data.buses;
+};
+
+const fetchBusRoutes = async (): Promise<IBusRoute[]> => {
+  const res = await fetch('/api/busRoutes');
+  const data = await res.json();
+  return data.busRoutes;
+};
+
+const fetchBusLoc = async (): Promise<Map<number, BusLocVal>> => {
+  const res = await fetch('/api/busLoc');
+  const data: { busLoc: { id: number; longitude: number; latitude: number }[] } = await res.json();
+  const busLocations = new Map<number, BusLocVal>();
+  data.busLoc.map((bus) => busLocations.set(bus.id, { longitude: bus.longitude, latitude: bus.latitude }));
+  return busLocations;
+};
