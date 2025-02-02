@@ -125,8 +125,11 @@ const fetchBusRoutes = async (): Promise<IBusRoute[]> => {
 
 const fetchBusLoc = async (): Promise<Map<number, BusLocVal>> => {
   const res = await fetch('/api/busLoc');
-  const data: { busLoc: { id: number; longitude: number; latitude: number }[] } = await res.json();
+  const data: { busLoc: { id: number; longitude: number; latitude: number; lastUpdateTime: string }[] } =
+    await res.json();
   const busLocations = new Map<number, BusLocVal>();
-  data.busLoc.map((bus) => busLocations.set(bus.id, { longitude: bus.longitude, latitude: bus.latitude }));
+  data.busLoc.map((bus) =>
+    busLocations.set(bus.id, { longitude: bus.longitude, latitude: bus.latitude, lastUpdateTime: bus.lastUpdateTime })
+  );
   return busLocations;
 };

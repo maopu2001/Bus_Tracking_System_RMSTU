@@ -22,6 +22,7 @@ const busSchema: Schema<IBus> = new Schema({
   position: {
     type: [Number],
     required: true,
+    default: [92.164563, 22.613093],
   },
   lastUpdateTime: {
     type: String,

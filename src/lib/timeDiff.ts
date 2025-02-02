@@ -5,7 +5,12 @@ export function timeDiff(date: string) {
   const diffHours = Math.floor(remTime / (1000 * 60 * 60));
   remTime = Math.floor(remTime % (1000 * 60 * 60));
   const diffMinutes = Math.floor(remTime / (1000 * 60));
-  return `${diffDays > 0 ? diffDays + ' days' : ''} ${diffHours > 0 ? diffHours + ' hours' : ''} ${
-    diffMinutes > 0 ? diffMinutes + ' minutes' : ''
-  }`;
+  let result = '';
+  if (diffDays > 0) result += diffDays + (diffDays === 1 ? ' day' : ' days');
+  if (diffDays > 0 && (diffHours > 0 || diffMinutes > 0)) result += ', ';
+  if (diffHours > 0) result += diffHours + (diffHours === 1 ? ' hour' : ' hours');
+  if (diffHours > 0 && diffMinutes > 0) result += ', ';
+  if (diffMinutes > 0) result += diffMinutes + (diffMinutes === 1 ? ' minute' : ' minutes');
+  if (result === '') result = 'Now';
+  return result;
 }
