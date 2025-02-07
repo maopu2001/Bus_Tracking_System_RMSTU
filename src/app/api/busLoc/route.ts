@@ -19,10 +19,7 @@ export async function GET(req: NextRequest) {
 
     if (!bus) return NextResponse.json({ message: 'No bus found' }, { status: 404 });
 
-    const modBus = await Bus.updateOne(
-      { id: id },
-      { $set: { position: [longitude, latitude], lastUpdateTime: new Date().toISOString() } }
-    );
+    const modBus = await Bus.updateOne({ id: id }, { $set: { position: [longitude, latitude] } });
 
     if (modBus.acknowledged) return NextResponse.json({ message: 'Bus location updated' }, { status: 200 });
     else return NextResponse.json({ message: 'Failed to update bus location' }, { status: 500 });
@@ -44,7 +41,7 @@ async function getBusLoc() {
       id: bus.id,
       longitude: bus.position[0],
       latitude: bus.position[1],
-      lastUpdateTime: bus.lastUpdateTime,
+      lastUpdateTime: bus.updatedAt,
     }));
 
     return NextResponse.json({ busLoc }, { status: 200 });
